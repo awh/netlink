@@ -35,6 +35,20 @@ func writeStateAlgoAuth(a *XfrmStateAlgo) []byte {
 	return algo.Serialize()
 }
 
+func writeStateAlgoAead(a *XfrmStateAlgo) []byte {
+	algo := nl.XfrmAlgoAead{
+		AlgKeyLen: uint32(len(a.Key) * 8),
+		AlgIcvLen: uint32(a.IcvLen),
+		AlgKey:    a.Key,
+	}
+	end := len(a.Name)
+	if end > 64 {
+		end = 64
+	}
+	copy(algo.AlgName[:end], a.Name)
+	return algo.Serialize()
+}
+
 func writeMark(m *XfrmMark) []byte {
 	mark := &nl.XfrmMark{
 		Value: m.Value,
@@ -95,6 +109,10 @@ func (h *Handle) xfrmStateAddOrUpdate(state *XfrmState, nlProto int) error {
 	}
 	if state.Crypt != nil {
 		out := nl.NewRtAttr(nl.XFRMA_ALG_CRYPT, writeStateAlgo(state.Crypt))
+		req.AddData(out)
+	}
+	if state.Aead != nil {
+		out := nl.NewRtAttr(nl.XFRMA_ALG_AEAD, writeStateAlgoAead(state.Aead))
 		req.AddData(out)
 	}
 	if state.Encap != nil {
@@ -271,6 +289,14 @@ func parseXfrmState(m []byte, family int) (*XfrmState, error) {
 			state.Auth.Name = nl.BytesToString(algo.AlgName[:])
 			state.Auth.Key = algo.AlgKey
 			state.Auth.TruncateLen = int(algo.AlgTruncLen)
+		case nl.XFRMA_ALG_AEAD:
+			if state.Aead == nil {
+				state.Aead = new(XfrmStateAlgo)
+			}
+			algo := nl.DeserializeXfrmAlgoAead(attr.Value[:])
+			state.Auth.Name = nl.BytesToString(algo.AlgName[:])
+			state.Auth.Key = algo.AlgKey
+			state.Auth.IcvLen = int(algo.AlgIcvLen)
 		case nl.XFRMA_ENCAP:
 			encap := nl.DeserializeXfrmEncapTmpl(attr.Value[:])
 			state.Encap = new(XfrmStateEncap)

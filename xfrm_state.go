@@ -12,6 +12,7 @@ type XfrmStateAlgo struct {
 	Name        string
 	Key         []byte
 	TruncateLen int // Auth only
+	IcvLen      int // Aead only
 }
 
 func (a XfrmStateAlgo) String() string {
@@ -75,6 +76,7 @@ type XfrmState struct {
 	Mark         *XfrmMark
 	Auth         *XfrmStateAlgo
 	Crypt        *XfrmStateAlgo
+	Aead         *XfrmStateAlgo
 	Encap        *XfrmStateEncap
 }
 

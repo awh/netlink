@@ -10,6 +10,7 @@ const (
 	SizeofXfrmUsersaInfo  = 0xe0
 	SizeofXfrmAlgo        = 0x44
 	SizeofXfrmAlgoAuth    = 0x48
+	SizeofXfrmAlgoAead    = 0x48
 	SizeofXfrmEncapTmpl   = 0x18
 	SizeofXfrmUsersaFlush = 0x8
 )
@@ -193,6 +194,35 @@ func (msg *XfrmAlgoAuth) Serialize() []byte {
 //   unsigned int  alg_icv_len;  /* in bits */
 //   char    alg_key[0];
 // }
+
+type XfrmAlgoAead struct {
+	AlgName   [64]byte
+	AlgKeyLen uint32
+	AlgIcvLen uint32
+	AlgKey    []byte
+}
+
+func (msg *XfrmAlgoAead) Len() int {
+	return SizeofXfrmAlgoAead + int(msg.AlgKeyLen/8)
+}
+
+func DeserializeXfrmAlgoAead(b []byte) *XfrmAlgoAead {
+	ret := XfrmAlgoAead{}
+	copy(ret.AlgName[:], b[0:64])
+	ret.AlgKeyLen = *(*uint32)(unsafe.Pointer(&b[64]))
+	ret.AlgIcvLen = *(*uint32)(unsafe.Pointer(&b[68]))
+	ret.AlgKey = b[72:ret.Len()]
+	return &ret
+}
+
+func (msg *XfrmAlgoAead) Serialize() []byte {
+	b := make([]byte, msg.Len())
+	copy(b[0:64], msg.AlgName[:])
+	copy(b[64:68], (*(*[4]byte)(unsafe.Pointer(&msg.AlgKeyLen)))[:])
+	copy(b[68:72], (*(*[4]byte)(unsafe.Pointer(&msg.AlgIcvLen)))[:])
+	copy(b[72:msg.Len()], msg.AlgKey[:])
+	return b
+}
 
 // struct xfrm_encap_tmpl {
 //   __u16   encap_type;

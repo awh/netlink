@@ -15,6 +15,10 @@ const (
 	XFRM_PROTO_HAO       Proto = syscall.IPPROTO_DSTOPTS
 	XFRM_PROTO_COMP      Proto = syscall.IPPROTO_COMP
 	XFRM_PROTO_IPSEC_ANY Proto = syscall.IPPROTO_RAW
+	XFRM_PROTO_TCP       Proto = syscall.IPPROTO_TCP
+	XFRM_PROTO_UDP       Proto = syscall.IPPROTO_UDP
+	XFRM_PROTO_SCTP      Proto = syscall.IPPROTO_SCTP
+	XFRM_PROTO_DCCP      Proto = syscall.IPPROTO_DCCP
 )
 
 func (p Proto) String() string {
@@ -31,6 +35,14 @@ func (p Proto) String() string {
 		return "comp"
 	case XFRM_PROTO_IPSEC_ANY:
 		return "ipsec-any"
+	case XFRM_PROTO_TCP:
+		return "tcp"
+	case XFRM_PROTO_UDP:
+		return "udp"
+	case XFRM_PROTO_SCTP:
+		return "sctp"
+	case XFRM_PROTO_DCCP:
+		return "dccp"
 	}
 	return fmt.Sprintf("%d", p)
 }
